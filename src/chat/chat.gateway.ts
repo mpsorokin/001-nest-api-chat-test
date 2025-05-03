@@ -8,6 +8,7 @@ import {
 } from '@nestjs/websockets';
 import { ChatService } from './chat.service';
 import { Socket, Server } from 'socket.io';
+import { SendMessageDto } from './dto/send-message.dto';
 
 @WebSocketGateway()
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
@@ -22,8 +23,11 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     console.log('client disconnected: ', client.id);
   }
 
-  @SubscribeMessage('test')
-  async test(@MessageBody() dto: any) {
-    this.server.emit('messages', dto);
+  @SubscribeMessage('send')
+  async handleMessage(@MessageBody() dto: SendMessageDto) {
+    const message = await this.chatService.sendMessage(dto);
+    this.server.emit('messages', message);
+
+    return message;
   }
 }
